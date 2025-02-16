@@ -77,4 +77,5 @@ public class GlobalException {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
+
 }
