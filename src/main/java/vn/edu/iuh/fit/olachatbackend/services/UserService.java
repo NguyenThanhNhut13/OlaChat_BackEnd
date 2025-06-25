@@ -12,17 +12,23 @@ package vn.edu.iuh.fit.olachatbackend.services;
  * @version:    1.0
  */
 
+import org.springframework.web.multipart.MultipartFile;
+import vn.edu.iuh.fit.olachatbackend.dtos.requests.SetContactAliasRequest;
 import vn.edu.iuh.fit.olachatbackend.dtos.requests.UserRegisterRequest;
+import vn.edu.iuh.fit.olachatbackend.dtos.requests.UserUpdateInfoRequest;
+import vn.edu.iuh.fit.olachatbackend.dtos.responses.ParticipantResponse;
 import vn.edu.iuh.fit.olachatbackend.dtos.responses.UserResponse;
+import vn.edu.iuh.fit.olachatbackend.dtos.responses.UserSearchResponse;
 import vn.edu.iuh.fit.olachatbackend.entities.User;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
     User saveUser(User user);
 
-    Optional<User> getUserById(String id);
+    //Get user by userID
+    UserResponse getUserById(String id);
 
     List<User> findAll();
 
@@ -34,5 +40,21 @@ public interface UserService {
 
     void deleteUser(String userId);
 
-    List<UserResponse> getUsersByConversationId(String conversationId);
+    List<ParticipantResponse> getUsersByConversationId(String conversationId);
+
+    UserResponse getMyInfo(String token);
+
+    //Cập nhật thông tin cá nhân (Display_name, Dob, Bio, Status)
+    UserResponse updateMyInfo(UserUpdateInfoRequest request);
+
+    //Change password
+    UserResponse changePassword(String oldPassword, String newPassword);
+    UserSearchResponse searchUserByPhoneOrEmail(String query);
+
+    public UserResponse updateUserAvatar( MultipartFile avatar) throws IOException;
+
+    public void requestEmailUpdate( String newEmail);
+    public UserResponse verifyAndUpdateEmail(String otpInput);
+
+    void setContactAlias(SetContactAliasRequest request);
 }

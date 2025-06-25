@@ -12,17 +12,19 @@ package vn.edu.iuh.fit.olachatbackend.controllers;
  * @version:    1.0
  */
 
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.iuh.fit.olachatbackend.dtos.ConversationDTO;
 import vn.edu.iuh.fit.olachatbackend.dtos.MessageDTO;
-import vn.edu.iuh.fit.olachatbackend.dtos.responses.UserResponse;
-import vn.edu.iuh.fit.olachatbackend.entities.Conversation;
-import vn.edu.iuh.fit.olachatbackend.entities.Message;
+import vn.edu.iuh.fit.olachatbackend.dtos.responses.*;
 import vn.edu.iuh.fit.olachatbackend.services.ConversationService;
 import vn.edu.iuh.fit.olachatbackend.services.MessageService;
 import vn.edu.iuh.fit.olachatbackend.services.UserService;
+import vn.edu.iuh.fit.olachatbackend.utils.extractUserIdFromJwt;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -44,19 +46,82 @@ public class ConversationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ConversationDTO>> getConversationsByUserId(@RequestParam("userId") String userId) {
-        return ResponseEntity.ok(conversationService.getAllConversationsByUserId(userId));
+    public ResponseEntity<MessageResponse<List<ConversationResponse>>> getConversationsByUser() {
+        return ResponseEntity.ok(
+                new MessageResponse<>(200, "Lấy danh sách cuộc trò chuyện thành công", true, conversationService.getAllConversationsByUser())
+        );
     }
 
-    @GetMapping("/{id}/messages")
-    public ResponseEntity<List<MessageDTO>> getMessagesByConversationId(@PathVariable String id) {
-        List<MessageDTO> messages = messageService.getMessagesByConversationId(id);
+    @GetMapping(value = "/{id}/messages", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<List<MessageDTO>> getMessagesByConversationId(@PathVariable String id,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "20") int size,
+                                                                        @RequestParam(defaultValue = "desc") String sortDirection) {
+        List<MessageDTO> messages = messageService.getMessagesByConversationId(id, page, size, sortDirection);
         return ResponseEntity.ok(messages);
     }
 
     @GetMapping("/{conversationId}/users")
-    public ResponseEntity<List<UserResponse>> getUsersByConversation(@PathVariable String conversationId) {
-        List<UserResponse> users = userService.getUsersByConversationId(conversationId);
+    public ResponseEntity<List<ParticipantResponse>> getUsersByConversation(@PathVariable String conversationId) {
+        List<ParticipantResponse> users = userService.getUsersByConversationId(conversationId);
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/{conversationId}/media")
+    public MessageResponse<List<MediaMessageResponse>> getImagesAndVideos(
+            @PathVariable String conversationId,
+            @RequestParam(required = false) String senderId
+    ) {
+        List<MediaMessageResponse> data = messageService.getMediaMessages(conversationId, senderId);
+        return MessageResponse.<List<MediaMessageResponse>>builder()
+                .message("Lấy media thành công.")
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/{conversationId}/files")
+    public MessageResponse<List<MediaMessageResponse>> getFiles(
+            @PathVariable String conversationId,
+            @RequestParam(required = false) String senderId
+    ) {
+        List<MediaMessageResponse> data = messageService.getFileMessages(conversationId, senderId);
+        return MessageResponse.<List<MediaMessageResponse>>builder()
+                .message("Lấy media thành công.")
+                .data(data)
+                .build();
+    }
+
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<MessageResponse<Void>> deleteConversationForUser(
+            @PathVariable String conversationId,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        String token = authHeader.replace("Bearer ", "");
+        String userId = extractUserIdFromJwt.extractUserIdFromJwt(token);
+
+        conversationService.softDeleteConversation(userId, conversationId);
+
+        return ResponseEntity.ok(
+                new MessageResponse<>(200, "Đã xoá cuộc trò chuyện thành công", true, null)
+        );
+    }
+
+    @GetMapping("/{conversationId}/search")
+    public MessageResponse<Page<MessageSearchResponse>> searchMessages(
+            @PathVariable("conversationId") String conversationId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String senderId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Page<MessageSearchResponse> result = messageService.searchMessages(
+                conversationId, keyword, senderId, fromDate, toDate, page, size
+        );
+        return MessageResponse.<Page<MessageSearchResponse>>builder()
+                .message("Tìm kiếm tin nhắn thành công.")
+                .data(result)
+                .build();
     }
 }

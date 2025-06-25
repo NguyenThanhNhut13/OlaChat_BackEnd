@@ -16,6 +16,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.iuh.fit.olachatbackend.entities.Participant;
+import vn.edu.iuh.fit.olachatbackend.enums.ParticipantRole;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,4 +30,8 @@ public interface ParticipantRepository extends MongoRepository<Participant, Obje
     boolean existsByConversationIdAndUserId(ObjectId groupId, String userId);
 
     List<Participant> findByConversationId(ObjectId groupId);
+    List<Participant> findByConversationIdAndUserIdIn(ObjectId conversationId, List<String> userIds);
+
+    long countByConversationId(ObjectId conversationId);
+    long countByConversationIdAndRole(ObjectId conversationId, ParticipantRole role);
 }
