@@ -1,15 +1,80 @@
+server:
+  servlet:
+    context-path: /ola-chat
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  tomcat:
+    max-http-header-size: 64KB
+
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.starttls.enable: false
+
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/olachat?createDatabaseIfNotExist=true
-    username: root
-    password: sapassword
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
 
   data:
     mongodb:
-      uri: link to mongo atlats
-      database: Ola-Cluster
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE}
+
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USER}
+      password: ${REDIS_PASS}
+      timeout: 60000
+
+cloudinary:
+  cloud_name: ${CLOUDINARY_NAME}
+  api_key: ${CLOUDINARY_API_KEY}
+  api_secret: ${CLOUDINARY_API_SECRET}
+
+jwt:
+  signerKey: ${JWT_SIGNER_KEY}
+  valid-duration: ${JWT_VALID_DURATION}
+  refreshable-duration: ${JWT_REFRESHABLE_DURATION}
+
+google:
+  googleClientId: ${GOOGLE_CLIENT_ID}
+  androidClientId: ${GOOGLE_ANDROID_CLIENT_ID}
+
+facebook:
+  client-id: ${FACEBOOK_CLIENT_ID}
+  client-secret: ${FACEBOOK_CLIENT_SECRET}
+
+twilio:
+  account:
+    sid: ${ACCOUNT_SID}
+  auth:
+    token: ${AUTH_TOKEN}
+  phone:
+    number: ${TWILIO_PHONE_NUMBER}
+
+vonage:
+  api-key: ${VONAGE_API_KEY}
+  api-secret: ${VONAGE_API_SECRET}
+  from: ${VONAGE_SENDER}
+
+weather:
+  api:
+    key: ${WEATHER_API_KEY}
+
+SERVER:
+  port: ${SERVER_PORT:8081}
